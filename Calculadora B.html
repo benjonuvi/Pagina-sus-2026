@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        .calculadora {
+            background-color: #22252d;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.3);
+            width: 300px;
+        }
+
+        #pantalla {
+            width: 100%;
+            height: 60px;
+            background-color: #292d36;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 2rem;
+            text-align: right;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .botones {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            height: 55px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #292d36;
+            color: #ffffff;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #353b48;
+        }
+
+        button.operador {
+            color: #ff7675;
+        }
+
+        button.igual {
+            background-color: #00cec9;
+            color: #ffffff;
+            grid-column: span 2;
+        }
+
+        button.igual:hover {
+            background-color: #01b1ad;
+        }
+
+        button.limpiar {
+            color: #00cec9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculadora">
+        <input type="text" id="pantalla" readonly value="0">
+        <div class="botones">
+            <button class="limpiar" onclick="limpiar()">C</button>
+            <button class="operador" onclick="agregar('/')">/</button>
+            <button class="operador" onclick="agregar('*')">*</button>
+            <button class="operador" onclick="borrarUno()">⌫</button>
+
+            <button onclick="agregar('7')">7</button>
+            <button onclick="agregar('8')">8</button>
+            <button onclick="agregar('9')">9</button>
+            <button class="operador" onclick="agregar('-')">-</button>
+
+            <button onclick="agregar('4')">4</button>
+            <button onclick="agregar('5')">5</button>
+            <button onclick="agregar('6')">6</button>
+            <button class="operador" onclick="agregar('+')">+</button>
+
+            <button onclick="agregar('1')">1</button>
+            <button onclick="agregar('2')">2</button>
+            <button onclick="agregar('3')">3</button>
+
+            <button onclick="agregar('0')">0</button>
+            <button onclick="agregar('.')">.</button>
+            <button class="igual" onclick="calcular()">=</button>
+        </div>
+    </div>
+
+    <script>
+        const pantalla = document.getElementById('pantalla');
+
+        function agregar(valor) {
+            if (pantalla.value === '0' && valor !== '.') {
+                pantalla.value = valor;
+            } else {
+                pantalla.value += valor;
+            }
+        }
+
+        function limpiar() {
+            pantalla.value = '0';
+        }
+
+        function borrarUno() {
+            if (pantalla.value.length === 1 || pantalla.value === 'Error') {
+                pantalla.value = '0';
+            } else {
+                pantalla.value = pantalla.value.slice(0, -1);
+            }
+        }
+
+        function calcular() {
+            try {
+                pantalla.value = eval(pantalla.value);
+            } catch (error) {
+                pantalla.value = 'Error';
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de Plataformas</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #1a1a2e;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #a6a6a6;
+    }
+
+    #gameCanvas {
+      border: 4px solid #e94560;
+      background-color: #0f3460;
+      box-shadow: 0 0 20px rgba(233, 69, 96, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Plataformero HTML5</h1>
+  <p>Usa las flechas <strong>Izquierda / Derecha</strong> para moverte y la flecha <strong>Arriba</strong> para saltar.</p>
+
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Configuración del Jugador
+    const player = {
+      x: 50,
+      y: 300,
+      width: 30,
+      height: 40,
+      color: '#e94560',
+      vx: 0,
+      vy: 0,
+      speed: 5,
+      gravity: 0.5,
+      jumpForce: -11,
+      grounded: false
+    };
+
+    // Teclas presionadas
+    const keys = {
+      right: false,
+      left: false,
+      up: false
+    };
+
+    // Arreglo de Plataformas {x, y, width, height, color}
+    const platforms = [
+      { x: 0, y: 360, width: 800, height: 40, color: '#16213e' },   // Suelo
+      { x: 150, y: 280, width: 120, height: 20, color: '#0f3460' }, // Plataforma 1
+      { x: 340, y: 220, width: 130, height: 20, color: '#0f3460' }, // Plataforma 2
+      { x: 530, y: 160, width: 120, height: 20, color: '#0f3460' }, // Plataforma 3
+      { x: 680, y: 260, width: 100, height: 20, color: '#0f3460' }  // Plataforma 4
+    ];
+
+    // Moneda / Objetivo
+    const coin = {
+      x: 720,
+      y: 220,
+      radius: 10,
+      color: '#f1c40f',
+      collected: false
+    };
+
+    // Escuchar eventos de teclado
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
+        if (!keys.up && player.grounded) {
+          player.vy = player.jumpForce;
+          player.grounded = false;
+        }
+        keys.up = true;
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') keys.up = false;
+    });
+
+    // Actualizar lógica del juego
+    function update() {
+      // Movimiento horizontal
+      if (keys.right) player.vx = player.speed;
+      else if (keys.left) player.vx = -player.speed;
+      else player.vx = 0;
+
+      // Aplicar gravedad
+      player.vy += player.gravity;
+
+      // Posicionar al jugador
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // Límites de la pantalla (izq/der)
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+      // Detección de colisiones con plataformas
+      player.grounded = false;
+
+      for (let plat of platforms) {
+        // Verificar si el jugador se cruza con la plataforma
+        if (
+          player.x < plat.x + plat.width &&
+          player.x + player.width > plat.x &&
+          player.y < plat.y + plat.height &&
+          player.y + player.height > plat.y
+        ) {
+          // Detectar colisión cayendo sobre la plataforma
+          if (player.vy > 0 && player.y + player.height - player.vy <= plat.y) {
+            player.y = plat.y - player.height;
+            player.vy = 0;
+            player.grounded = true;
+          }
+        }
+      }
+
+      // Caída al vacío (Reiniciar posición)
+      if (player.y > canvas.height) {
+        player.x = 50;
+        player.y = 300;
+        player.vy = 0;
+      }
+
+      // Colisión con la moneda
+      if (!coin.collected) {
+        const distX = (player.x + player.width / 2) - coin.x;
+        const distY = (player.y + player.height / 2) - coin.y;
+        const distance = Math.sqrt(distX * distX + distY * distY);
+
+        if (distance < player.width / 2 + coin.radius) {
+          coin.collected = true;
+        }
+      }
+    }
+
+    // Dibujar elementos en el lienzo
+    function draw() {
+      // Limpiar pantalla
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Dibujar plataformas
+      for (let plat of platforms) {
+        ctx.fillStyle = plat.color;
+        ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+        
+        // Un pequeño borde decorativo para las plataformas
+        ctx.strokeStyle = '#e94560';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(plat.x, plat.y, plat.width, plat.height);
+      }
+
+      // Dibujar moneda
+      if (!coin.collected) {
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+        ctx.fillStyle = coin.color;
+        ctx.fill();
+        ctx.closePath();
+      } else {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '20px Arial';
+        ctx.fillText('¡Ganaste! Recogiste la moneda 🏆', 260, 50);
+      }
+
+      // Dibujar jugador
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    // Bucle principal del juego
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Iniciar juego
+    gameLoop();
+  </script>
+</body>
+</html>
